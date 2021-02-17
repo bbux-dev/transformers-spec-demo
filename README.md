@@ -22,8 +22,6 @@ cd dataspec
 
 pip install -r requirements.txt
 
-pyinstaller cli.py --name dataspec --onefile
-
 # requires a python command to be present on path
 # recommend virtualenv
 sudo cp cli.py /usr/local/bin/dataspec
