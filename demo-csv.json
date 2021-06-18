@@ -1,0 +1,15 @@
+{
+  "field": {
+    "type": "hf-fill-mask",
+    "seed-ref": "SEED_REF"
+  },
+  "refs": {
+    "SEED_REF": {
+      "type": "csv",
+      "config": {
+        "datafile": "lines.csv",
+        "column": "1"
+      }
+    }
+  }
+}

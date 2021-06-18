@@ -46,13 +46,15 @@ import json
 import logging
 import random
 import dataspec
-from dataspec import SpecException
-from transformers import pipeline
+import transformers
 
 log = logging.getLogger(__name__)
 
 
-class HuggingFaceFillMaskSupplier:
+class HuggingFaceFillMaskSupplier(dataspec.ValueSupplierInterface):
+    """
+    Class that applies the hf-fill-mask transformer pipeline to input strings
+    """
     def __init__(self,
                  wrapped,
                  mask_token_placeholder,
@@ -60,12 +62,13 @@ class HuggingFaceFillMaskSupplier:
                  token_only,
                  model_dir=None):
         self.wrapped = wrapped
+        # if we have a model dir that looks valid, use it
         if _model_dir_is_valid(model_dir):
             log.debug('Loading %s pipeline from %s...', pipeline_name, model_dir)
-            self.nlp = pipeline(pipeline_name, model=model_dir)
+            self.nlp = transformers.pipeline(pipeline_name, model=model_dir)
         else:
             log.debug('Loading %s pipeline from internets...', pipeline_name)
-            self.nlp = pipeline(pipeline_name)
+            self.nlp = transformers.pipeline(pipeline_name)
         log.debug('%s pipeline Loaded', pipeline_name)
         self.mask_token_placeholder = mask_token_placeholder
         self.mask_token = self.nlp.tokenizer.mask_token
@@ -74,9 +77,11 @@ class HuggingFaceFillMaskSupplier:
     def next(self, iteration):
         value = str(self.wrapped.next(iteration))
         if self.mask_token_placeholder not in value:
-            raise SpecException(f'Mask token placeholder: {self.mask_token_placeholder} not found in generated data!')
+            raise dataspec.SpecException(
+                f'Mask token placeholder: {self.mask_token_placeholder} not found in generated data!')
         value = value.replace(self.mask_token_placeholder, self.mask_token)
         candidates = self.nlp(value)
+        # just take a random candidate
         candidate = random.sample(candidates, 1)[0]
         if self.token_only:
             return candidate['token_str']
@@ -93,14 +98,17 @@ def configure_supplier(field_spec, loader):
     """
     Configures the supplier from the provided field spec using the huggingface fill-mask pipeline by default
 
+    :param loader: dataspec.Loader object
+    :param field_spec: specification for the hf-fill-mask field
+
     Config Params:
-    :param mask-token-placeholder: place holder that should show up in the seed strings, default '__MASK__'
-    :param pipeline: name of the transformers pipeline to use, default is 'fill-mask'
-    :param model-dir: directory to load model from, default is loader.datadir
-    :param token-only: if only the generated token should be output apart from the context, default is to output the full sequence
+    :key mask-token-placeholder: place holder that should show up in the seed strings, default '__MASK__'
+    :key pipeline: name of the transformers pipeline to use, default is 'fill-mask'
+    :key model-dir: directory to load model from, default is loader.datadir
+    :key token-only: if only the generated token should be output apart from the context, default is to output the full sequence
     """
     if 'seed-ref' not in field_spec:
-        raise SpecException('seed-ref is required field for hf-fill-mask type: ' + json.dumps(field_spec))
+        raise dataspec.SpecException('seed-ref is required field for hf-fill-mask type: ' + json.dumps(field_spec))
     key = field_spec.get('seed-ref')
     seed_ref_spec = loader.refs.get(key)
     config = field_spec.get('config', {})
@@ -108,5 +116,20 @@ def configure_supplier(field_spec, loader):
     pipeline_name = config.get('pipeline', 'fill-mask')
     model_dir = config.get('model-dir', loader.datadir)
     token_only = config.get('token-only', False)
+    # This is the supplier for the inputs to the transformer pipeline
     wrapped = loader.get_from_spec(seed_ref_spec)
     return HuggingFaceFillMaskSupplier(wrapped, mask_token_placeholder, pipeline_name, token_only, model_dir)
+
+
+@dataspec.registry.schemas('hf-fill-mask')
+def get_hf_fill_mask_schema():
+    return {
+        "$schema": "http://json-schema.org/draft-07/schema#",
+        "$id": "hf-fill-mask.schema.json",
+        "type": "object",
+        "required": ["type", "seed-ref"],
+        "properties": {
+            "type": {"type": "string", "pattern": "^hf-fill-mask"},
+            "seed-ref": {"type": "string"}
+        }
+    }
