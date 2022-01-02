@@ -9,19 +9,19 @@ Data Spec Transformers Demo
 ## <a name="Overview"></a>Overview
 
 This is a more detailed demo for
-the [dataspec](https://github.com/bbux-dev/dataspec) library. This make use of
+the [datacraft](https://github.com/bbux-dev/datacraft) library. This make use of
 the [huggingface](https://huggingface.co/transformers/task_summary.html#masked-language-modeling)
 Masked Language Modeling example to generate tokens from surrounding context.
 
 ## <a name="Build"></a>Build
 
-To install the dataspec library and the huggingface dependencies:
+To install the datacraft library and the huggingface dependencies:
 
 ```shell
-pip install git+https://github.com/bbux-dev/dataspec.git transformers torch
+pip install datacraft transformers torch
 ```
 
-The `dataspec` executable should now be on your path
+The `datacraft` executable should now be on your path
 
 
 ## <a name="Example"></a>Example
@@ -33,7 +33,7 @@ the `__MASK__` token to denote where the token should be placed. To run the
 demo:
 
 ```shell
-dataspec -s demo.json -i 20 -c custom_code.py -l debug
+datacraft -s demo.json -i 20 -c custom_code.py -l debug
 ```
 
 ## <a name="Download"></a>Download Model
@@ -48,7 +48,7 @@ python download_model.py /path/to/model/dir 2>&1 | grep INFO
 #INFO: Saving fill-mask to /path/to/model/dir
 
 # now specify the downloaded dir as the datadir
-dataspec -s demo.json -i 20 -c custom_code.py -l debug -d /path/to/model/dir
+datacraft -s demo.json -i 20 -c custom_code.py -l debug -d /path/to/model/dir
 ```
 
 ## <a name="CSV_Example"></a>CSV Example
@@ -60,5 +60,5 @@ can be referenced in a Data Spec using the `csv` Field Spec type.  The
 ```shell
 # copy csv file to same location as downloaded model:
 cp lines.csv /path/to/model/dir
-dataspec -s demo-csv.json -i 20 -c custom_code.py -l debug --data-dir /path/to/model/dir
+datacraft -s demo-csv.json -i 20 -c custom_code.py -l debug --data-dir /path/to/model/dir
 ```

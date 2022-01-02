@@ -45,13 +45,13 @@ Spec format
 import json
 import logging
 import random
-import dataspec
+import datacraft
 import transformers
 
 log = logging.getLogger(__name__)
 
 
-class HuggingFaceFillMaskSupplier(dataspec.ValueSupplierInterface):
+class HuggingFaceFillMaskSupplier(datacraft.ValueSupplierInterface):
     """
     Class that applies the hf-fill-mask transformer pipeline to input strings
     """
@@ -77,7 +77,7 @@ class HuggingFaceFillMaskSupplier(dataspec.ValueSupplierInterface):
     def next(self, iteration):
         value = str(self.wrapped.next(iteration))
         if self.mask_token_placeholder not in value:
-            raise dataspec.SpecException(
+            raise datacraft.SpecException(
                 f'Mask token placeholder: {self.mask_token_placeholder} not found in generated data!')
         value = value.replace(self.mask_token_placeholder, self.mask_token)
         candidates = self.nlp(value)
@@ -93,12 +93,12 @@ def _model_dir_is_valid(model_dir):
     return model_dir and model_dir_str not in ['', '[]']
 
 
-@dataspec.registry.types('hf-fill-mask')
+@datacraft.registry.types('hf-fill-mask')
 def configure_supplier(field_spec, loader):
     """
     Configures the supplier from the provided field spec using the huggingface fill-mask pipeline by default
 
-    :param loader: dataspec.Loader object
+    :param loader: datacraft.Loader object
     :param field_spec: specification for the hf-fill-mask field
 
     Config Params:
@@ -108,7 +108,7 @@ def configure_supplier(field_spec, loader):
     :key token-only: if only the generated token should be output apart from the context, default is to output the full sequence
     """
     if 'seed-ref' not in field_spec:
-        raise dataspec.SpecException('seed-ref is required field for hf-fill-mask type: ' + json.dumps(field_spec))
+        raise datacraft.SpecException('seed-ref is required field for hf-fill-mask type: ' + json.dumps(field_spec))
     key = field_spec.get('seed-ref')
     seed_ref_spec = loader.refs.get(key)
     config = field_spec.get('config', {})
@@ -121,7 +121,7 @@ def configure_supplier(field_spec, loader):
     return HuggingFaceFillMaskSupplier(wrapped, mask_token_placeholder, pipeline_name, token_only, model_dir)
 
 
-@dataspec.registry.schemas('hf-fill-mask')
+@datacraft.registry.schemas('hf-fill-mask')
 def get_hf_fill_mask_schema():
     return {
         "$schema": "http://json-schema.org/draft-07/schema#",
