@@ -109,11 +109,10 @@ def configure_supplier(field_spec, loader):
     :param loader: datacraft.Loader object
     :param field_spec: specification for the hf-fill-mask field
 
-    Config Params:
-    :key mask-token-placeholder: place holder that should show up in the seed strings, default '__MASK__'
-    :key pipeline: name of the transformers pipeline to use, default is 'fill-mask'
-    :key model-dir: directory to load model from, default is loader.datadir
-    :key token-only: if only the generated token should be output apart from the context, default is to output the full sequence
+    Config Params: :key mask-token-placeholder: place holder that should show up in the seed strings,
+    default '__MASK__' :key pipeline: name of the transformers pipeline to use, default is 'fill-mask' :key
+    model-dir: directory to load model from, default is loader.datadir :key token-only: if only the generated token
+               should be output apart from the context, default is to output the full sequence
     """
     if 'seed-ref' not in field_spec:
         raise datacraft.SpecException('seed-ref is required field for hf-fill-mask type: ' + json.dumps(field_spec))
