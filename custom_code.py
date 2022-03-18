@@ -80,12 +80,20 @@ class HuggingFaceFillMaskSupplier(datacraft.ValueSupplierInterface):
             raise datacraft.SpecException(
                 f'Mask token placeholder: {self.mask_token_placeholder} not found in generated data!')
         value = value.replace(self.mask_token_placeholder, self.mask_token)
+        return self._get_best_candidate(value)
+
+    def _get_best_candidate(self, value):
         candidates = self.nlp(value)
-        # just take a random candidate
+        if isinstance(candidates[0], list):
+            candidates = random.sample(candidates, 1)[0]
         candidate = random.sample(candidates, 1)[0]
         if self.token_only:
             return candidate['token_str']
-        return candidate['sequence']
+        sequence = candidate['sequence']
+        if self.mask_token in sequence:
+            clean_sequence = sequence.replace('<s>', '').replace('</s>', '')
+            return self._get_best_candidate(clean_sequence)
+        return sequence
 
 
 def _model_dir_is_valid(model_dir):
