@@ -26,7 +26,7 @@ The `datacraft` executable should now be on your path
 
 ## <a name="Example"></a>Example
 
-This example takes advantage of the datacraft custom code loading capability. This profides an extension point into 
+This example takes advantage of the datacraft custom code loading capability. This provides an extension point into 
 the datacraft library to build and define custom types and handlers for those types. The custom_code.py module 
 defines a `hf-fill-mask` type handler. This example code will load a huggingface `fill-mask` transformer pipeline. 
 This pipeline is used to generate tokens given the surrounding context. The handler uses the `__MASK__` token to 
